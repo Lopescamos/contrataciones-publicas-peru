@@ -28,9 +28,17 @@ data/curated/**
 data/exports/**
 data/external/**
 data/db/**
+data/features/**
+data/predictions/**
 !data/**/
 !data/**/.gitkeep
 # data/sample/ SÍ se versiona: son datos sintéticos de demostración.
+
+# --- Modelos de machine learning (se regeneran al entrenar) -----------------
+models/trained/*
+models/metadata/*
+models/logs/*
+!models/**/.gitkeep
 
 # --- Logs ----------------------------------------------------------------------
 logs/*

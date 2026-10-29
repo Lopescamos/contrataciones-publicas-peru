@@ -1,0 +1,190 @@
+# =============================================================================
+# Modelo de monto esperado (Fase 2 · machine learning).
+# Estima cuánto debería costar razonablemente un proceso según su perfil y marca
+# como atípicos los montos adjudicados que se alejan mucho de lo esperado.
+# Una desviación NO prueba una irregularidad: señala un proceso que conviene revisar.
+#
+# Formulación: se modela log(monto_adjudicado / valor_referencial) y el monto
+# esperado es valor_referencial x exp(predicción). Lo usan los paquetes
+# src/contrataciones/features y src/contrataciones/models.
+# =============================================================================
+
+model_name: monto_esperado
+
+# --- Población ------------------------------------------------------------------
+# Entran los procesos con adjudicación válida, monto adjudicado > 0 y valor
+# referencial > 0 (fact_proceso.monto_adjudicado_pen ya suma solo las válidas).
+population:
+  # Razón adjudicado / referencial plausible. Fuera de este rango el monto se trata
+  # como probable error de datos: no se usa para entrenar y se reporta como
+  # "Revisar datos" (caso real: S/ 90 adjudicados contra S/ 3.05 millones).
+  min_ratio: 0.05
+  max_ratio: 5.0
+  # Exclusiones que decida la auditoría de fuga de datos (Fase 0,
+  # notebooks/ml/01_auditoria_fuga_de_datos.ipynb). Vacías hasta entonces.
+  exclude_methods: []          # valores de dim_metodo.metodo_detalle
+  exclude_categories: []       # valores de dim_categoria.categoria
+
+# --- Features -------------------------------------------------------------------
+# Cada feature declara su columna de origen en la capa gold (tabla.columna) y el
+# momento en que se conoce. El código acepta solo available_at: convocatoria y
+# rechaza las columnas posteriores a la adjudicación aunque se declaren aquí
+# (postores, montos y fechas de adjudicación, puntaje de riesgo, proveedores,
+# contratos, agg_entidad_anio): esa lista vive en
+# src/contrataciones/features/catalog.py y no se puede desactivar desde este archivo.
+#
+#   kind:      numeric | categorical | binary | high_cardinality (TargetEncoder)
+#   transform: none (por defecto) | log1p | month (de una llave AAAAMMDD) | entity_type
+#   enabled:   false para excluir una feature sin borrar su definición
+features:
+  log_valor_referencial:
+    source: fact_proceso.valor_referencial_pen
+    available_at: convocatoria
+    kind: numeric
+    transform: log1p
+    # Condicional: en procesos con información protegida por ley el OECE puede
+    # publicar el valor recién con la buena pro (ver la auditoría de la Fase 0).
+    conditional: true
+    description: Valor referencial en soles (escala logarítmica)
+  metodo:
+    source: dim_metodo.metodo_detalle
+    available_at: convocatoria
+    kind: categorical
+    description: Procedimiento de selección (también distingue el régimen legal)
+  es_competitivo:
+    source: dim_metodo.es_competitivo
+    available_at: convocatoria
+    kind: binary
+    description: El procedimiento es competitivo
+  categoria:
+    source: dim_categoria.categoria
+    available_at: convocatoria
+    kind: categorical
+    description: Objeto de la contratación (bienes, servicios, obras)
+  entidad:
+    source: dim_entidad.entidad_id
+    available_at: convocatoria
+    kind: high_cardinality
+    description: Entidad compradora (su historial se aprende solo del entrenamiento)
+  tipo_entidad:
+    source: dim_entidad.nombre
+    available_at: convocatoria
+    kind: categorical
+    transform: entity_type
+    description: Tipo de entidad según su nombre (reglas en entity_types)
+  departamento:
+    source: dim_entidad.departamento
+    available_at: convocatoria
+    kind: categorical
+    description: Departamento de la entidad
+  mes_convocatoria:
+    source: fact_proceso.fecha_convocatoria_key
+    available_at: convocatoria
+    kind: categorical
+    transform: month
+    description: Mes de la convocatoria (estacionalidad del año fiscal)
+  plazo_consultas_dias:
+    source: fact_proceso.plazo_consultas_dias
+    available_at: convocatoria
+    kind: numeric
+    description: Días del periodo de consultas y observaciones
+  plazo_presentacion_dias:
+    source: fact_proceso.plazo_presentacion_dias
+    available_at: convocatoria
+    kind: numeric
+    # Se conoce en la convocatoria, pero viene vacío en el 100 % de la publicación
+    # real (tenderPeriod con inicio = fin): no aporta información.
+    enabled: false
+    description: Días del periodo de presentación de ofertas
+
+# Tipo de entidad a partir de su nombre normalizado (mayúsculas, sin tildes ni
+# signos). Las reglas se evalúan en orden y gana la primera; las palabras clave se
+# buscan como palabras completas. El sector va antes que el nivel de gobierno: un
+# hospital de un gobierno regional se clasifica como "Salud".
+entity_types:
+  default: Otra
+  rules:
+    - label: Salud
+      keywords: [SALUD, HOSPITAL, ESSALUD, SEGURO SOCIAL, SANIDAD, RED ASISTENCIAL]
+    - label: Educación
+      keywords: [UNIVERSIDAD, EDUCACION, EDUCATIVA, UGEL, COLEGIO, ESCUELA]
+    - label: Defensa y orden interno
+      keywords: [EJERCITO, MARINA DE GUERRA, FUERZA AEREA, POLICIA NACIONAL, PNP,
+                 COMANDO CONJUNTO, MINISTERIO DE DEFENSA, MINISTERIO DEL INTERIOR]
+    - label: Empresa pública
+      keywords: [EMPRESA, S A, S A A, S A C, SRLTDA, ENTIDAD PRESTADORA, EPS, SEDAPAL,
+                 PETROPERU, CORPORACION, FONAFE, BANCO DE LA NACION, CAJA MUNICIPAL]
+    - label: Gobierno regional
+      keywords: [GOBIERNO REGIONAL, DIRECCION REGIONAL, GERENCIA REGIONAL, REGION]
+    - label: Gobierno local
+      keywords: [MUNICIPALIDAD, MANCOMUNIDAD, INSTITUTO VIAL PROVINCIAL]
+    - label: Gobierno nacional
+      keywords: [MINISTERIO, PODER JUDICIAL, CONGRESO, DEFENSORIA, CONTRALORIA,
+                 JURADO NACIONAL, SUPERINTENDENCIA, ORGANISMO, AUTORIDAD, PROGRAMA,
+                 PRESIDENCIA, DIRECCION GENERAL, UNIDAD EJECUTORA, NACIONAL]
+
+# --- División temporal ----------------------------------------------------------
+# Por fecha de convocatoria: entrenamiento -> validación -> prueba (se usa una vez).
+# Un proceso entra al entrenamiento solo si además se adjudicó antes de que empiece
+# la validación: antes de esa fecha su monto no se conocía. La fecha de adjudicación
+# solo filtra filas; nunca es una feature.
+split:
+  # Fecha a la que están actualizados los datos. null = la adjudicación más reciente.
+  reference_date: null
+  # Las convocatorias más recientes no se evalúan: a esa altura solo se adjudicaron
+  # los procesos rápidos (sesgo de censura).
+  maturity_months: 3
+  test_months: 3
+  validation_months: 3
+  # Predicción histórica fuera de muestra: cada proceso lo puntúa un modelo
+  # entrenado sin su bloque de convocatoria.
+  out_of_fold_block: quarter   # quarter | month
+
+# --- Modelos --------------------------------------------------------------------
+models:
+  random_state: 2026          # semilla de los modelos y de la validación cruzada interna
+  # Línea base B1: valor referencial x mediana de la razón del entrenamiento por
+  # grupo. Los grupos con menos de min_group_size procesos usan la mediana global.
+  baseline:
+    group_by: [metodo, categoria]
+    min_group_size: 20
+  # Candidatos que se comparan en la partición de validación.
+  candidates: [ridge, hist_gradient_boosting]
+  selection_metric: mae_log
+  ridge:
+    alpha: 1.0
+    min_frequency: 10          # categorías con menos casos se agrupan como infrecuentes
+  hist_gradient_boosting:
+    loss: absolute_error       # predice la mediana condicional: robusta a montos extremos
+    learning_rate: 0.05
+    max_iter: 400
+    max_leaf_nodes: 31
+    min_samples_leaf: 40
+    l2_regularization: 1.0
+    early_stopping: auto       # se activa con más de 10 000 procesos de entrenamiento
+  # Criterio de aceptación: reducir al menos este porcentaje el MAE (escala log) de
+  # la línea base en la partición de prueba. Si no se alcanza, el modelo se registra
+  # como no aceptado y el reporte lo advierte.
+  min_improvement_vs_baseline: 0.10
+  # Repeticiones de la importancia por permutación (partición de prueba).
+  permutation_repeats: 5
+
+# --- Montos atípicos ------------------------------------------------------------
+# residuo = log(monto real) - log(monto esperado); z = residuo / escala robusta.
+# La escala es 1.4826 x MAD de los residuos fuera de muestra de cada segmento.
+anomalies:
+  segment_by: categoria
+  min_segment_size: 30         # segmentos con menos casos usan la escala global
+  # Piso de la escala (log). La razón exacta 1.0 es muy frecuente (convenios, obras):
+  # sin piso la MAD puede ser casi 0 y cualquier céntimo de diferencia sería atípico.
+  min_scale: 0.05
+  z_threshold: 3.0             # también define los límites inferior y superior
+  min_deviation: 0.15          # |real / esperado - 1| mínimo para marcar (15 %)
+
+# --- Salidas --------------------------------------------------------------------
+output:
+  table: pred_monto_esperado   # data/predictions/<table>.parquet|csv y tabla en la BD
+  formats: [parquet, csv]
+  load_database: true          # tabla aparte, sin llaves foráneas hacia la capa gold
+  excel_report: reporte_montos_atipicos   # data/exports/<nombre>.xlsx
+  excel_max_rows: 500          # procesos listados en la hoja de atípicos

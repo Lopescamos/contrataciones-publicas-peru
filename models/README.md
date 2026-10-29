@@ -1,7 +1,8 @@
 # Modelos
 
-Artefactos del modelo de monto esperado (Fase 2, machine learning). Se generan al entrenar y
-no se versionan en Git: solo este archivo y los `.gitkeep`.
+Artefactos del modelo de monto esperado (Fase 2, machine learning). Se generan con
+`contrataciones-ml train` y no se versionan en Git: solo este archivo y los `.gitkeep`.
+`contrataciones-ml list` muestra el catálogo. Metodología: `docs/11_machine_learning.md`.
 
 | Carpeta | Contenido |
 | --- | --- |

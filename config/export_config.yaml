@@ -1,0 +1,22 @@
+# =============================================================================
+# Configuración de las exportaciones.
+# =============================================================================
+
+csv:
+  separator: ","
+  decimal: "."
+  encoding: utf-8-sig        # utf-8 con BOM: Excel abre bien las tildes
+
+parquet:
+  compression: snappy
+
+excel:
+  report_name: reporte_contrataciones
+  top_n: 20                  # filas en los rankings
+  max_alert_rows: 1000       # procesos con alerta listados en la hoja "Alertas"
+  header_fill: "1F2A44"      # azul pizarra
+  header_font_color: "FFFFFF"
+  zebra_fill: "F4F6F9"
+  font_name: Calibri
+  font_size: 10
+  max_column_width: 60

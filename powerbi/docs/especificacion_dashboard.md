@@ -1,7 +1,8 @@
 # Especificación del dashboard
 
-Reporte de Power BI de 5 páginas + 1 página de detalle (*drill-through*). Esta especificación
-dice **qué** construir; `powerbi/README.md` explica **cómo**.
+Reporte de Power BI de 5 páginas + 1 página de detalle (*drill-through*) y, de forma opcional,
+una página de montos atípicos (Fase 2, machine learning). Esta especificación dice **qué**
+construir; `powerbi/README.md` explica **cómo**.
 
 ## Lineamientos de diseño
 
@@ -93,6 +94,22 @@ Desde la tabla de la página 5: clic derecho → `Drill through > Detalle del pr
 | Postores | `Table` | `dim_proveedor[nombre]`, `dim_proveedor[ruc]`, `fact_postor[es_ganador]` |
 | Adjudicación y contrato | `Table` | `fact_adjudicacion[award_id]`, `fact_adjudicacion[monto_asignado_pen]`, `fact_contrato[contract_id]`, `fact_contrato[estado]` |
 
+## Página 7 · Montos atípicos (Fase 2, ML, opcional)
+
+Compara el monto adjudicado con el **monto esperado** que estima el modelo según el perfil
+del proceso al convocarse. Requiere la tabla `pred_monto_esperado` y la relación 14 del modelo.
+
+| Zona | Visual | Campos / medidas |
+| --- | --- | --- |
+| Fila de KPIs | 5 × `Card` | `Procesos evaluados (ML)`, `Procesos con sobrecosto inusual`, `Procesos con subcosto inusual`, `% Montos atípicos`, `Monto sobre lo esperado` |
+| Encabezado derecho | `Card` (texto) | `Estado del modelo` |
+| Centro izquierda | `Scatter chart` | X: `pred_monto_esperado[monto_esperado_pen]`; Y: `pred_monto_esperado[monto_adjudicado_pen]` (ambos ejes en escala logarítmica); leyenda: `tipo_desviacion`; detalle: `pred_monto_esperado[ocid]` |
+| Centro derecha | `Clustered bar chart` | Eje Y: `dim_categoria[categoria]`; X: `% Montos atípicos` |
+| Abajo | `Table` | `fact_proceso[ocid]`, `dim_entidad[nombre]`, `dim_metodo[metodo_detalle]`, `Valor referencial`, `pred_monto_esperado[monto_adjudicado_pen]`, `pred_monto_esperado[monto_esperado_pen]`, `pct_desviacion`, `z_robusto`, `tipo_desviacion`, `origen_prediccion`, `fact_proceso[nivel_riesgo]`; filtro de visual: `tipo_desviacion` distinto de `Normal`; orden por `z_robusto` |
+| Pie | `Text box` | `Nota de montos atípicos` y el límite del modelo: no detecta un valor referencial inflado |
+
+Colores de `tipo_desviacion`: Normal `#C8CFD8`, Sobrecosto inusual `#B5533C`, Subcosto inusual `#3E6A8A`, Revisar datos `#C9A227`. Desde la tabla: `Drill through > Detalle del proceso`.
+
 ## Página opcional · Calidad y metodología
 
 Cuadros de texto con: fuente de datos y licencia (CC BY 4.0), fecha de corte, alcance (la
@@ -109,4 +126,6 @@ archivo `data/processed/reporte_calidad.csv` importado como tabla.
 - [ ] Tema aplicado y colores de riesgo consistentes en todas las páginas.
 - [ ] Títulos de visuales en español y sin abreviaturas ambiguas.
 - [ ] Nota de interpretación de alertas visible en la página 5.
+- [ ] Si se incluye la página 7: predicciones de la misma corrida que la capa gold, `Estado del
+      modelo` visible y nota de montos atípicos.
 - [ ] Probado con filtros extremos (un solo año, un departamento sin datos).

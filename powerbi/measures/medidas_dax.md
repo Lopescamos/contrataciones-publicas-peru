@@ -264,6 +264,70 @@ Nota de alertas =
 "Las alertas son señales para priorizar la revisión; no prueban irregularidades."
 ```
 
+## 08 · Monto esperado (Fase 2, ML)
+
+Requieren la tabla `pred_monto_esperado` (ver `power_query/03_predicciones_ml.pq`).
+
+```dax
+Procesos evaluados (ML) =
+COUNTROWS ( pred_monto_esperado )
+```
+
+```dax
+Procesos con sobrecosto inusual =
+CALCULATE ( [Procesos evaluados (ML)], pred_monto_esperado[tipo_desviacion] = "Sobrecosto inusual" )
+```
+
+```dax
+Procesos con subcosto inusual =
+CALCULATE ( [Procesos evaluados (ML)], pred_monto_esperado[tipo_desviacion] = "Subcosto inusual" )
+```
+
+```dax
+Procesos a revisar por datos =
+CALCULATE ( [Procesos evaluados (ML)], pred_monto_esperado[tipo_desviacion] = "Revisar datos" )
+```
+
+```dax
+% Montos atípicos =
+DIVIDE (
+    CALCULATE ( [Procesos evaluados (ML)], pred_monto_esperado[es_atipico] = TRUE () ),
+    [Procesos evaluados (ML)]
+)
+```
+
+```dax
+Monto esperado =
+SUM ( pred_monto_esperado[monto_esperado_pen] )
+```
+
+```dax
+Monto sobre lo esperado =
+SUMX (
+    FILTER ( pred_monto_esperado, pred_monto_esperado[tipo_desviacion] = "Sobrecosto inusual" ),
+    pred_monto_esperado[monto_adjudicado_pen] - pred_monto_esperado[monto_esperado_pen]
+)
+```
+
+```dax
+Desviación mediana =
+MEDIAN ( pred_monto_esperado[pct_desviacion] )
+```
+
+```dax
+Estado del modelo =
+IF (
+    SELECTEDVALUE ( pred_monto_esperado[modelo_aceptado] ) = TRUE (),
+    "Modelo " & SELECTEDVALUE ( pred_monto_esperado[modelo_version] ) & ": aceptado",
+    "Modelo no aceptado (no supera a la línea base): interpreta los atípicos con cautela"
+)
+```
+
+```dax
+Nota de montos atípicos =
+"Un monto atípico no prueba una irregularidad: señala un proceso que conviene revisar."
+```
+
 ---
 
 ### Formatos sugeridos
@@ -275,3 +339,5 @@ Nota de alertas =
 | `Procesos ...`, `Alertas`, conteos | Número entero con separador de miles |
 | `HHI promedio` | Número entero |
 | `Postores promedio`, `Plazo promedio` | Decimal, 1 decimal |
+| `Monto esperado`, `Monto sobre lo esperado` | Moneda `S/`, 0 decimales |
+| `% Montos atípicos`, `Desviación mediana` | Porcentaje, 1 decimal |

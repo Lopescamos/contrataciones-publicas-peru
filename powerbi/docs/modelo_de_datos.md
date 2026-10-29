@@ -19,6 +19,7 @@ erDiagram
     dim_proveedor ||--o{ fact_sancion      : "proveedor_key"
     dim_indicador ||--o{ fact_alerta       : "indicador_key"
     dim_entidad   ||--o{ agg_entidad_anio  : "entidad_key"
+    fact_proceso  ||--o| pred_monto_esperado : "proceso_key (Fase 2, ML)"
 ```
 
 ## Relaciones a crear
@@ -41,6 +42,7 @@ erDiagram
 | 11 | `fact_alerta[indicador_key]` | `dim_indicador[indicador_key]` | Alertas por indicador |
 | 12 | `fact_sancion[proveedor_key]` | `dim_proveedor[proveedor_key]` | Sanciones por proveedor |
 | 13 | `agg_entidad_anio[entidad_key]` | `dim_entidad[entidad_key]` | KPIs por entidad y año |
+| 14 | `pred_monto_esperado[proceso_key]` | `fact_proceso[proceso_key]` | Montos atípicos (Fase 2, opcional): *:1, dirección `Single` |
 
 > Power BI puede detectar algunas relaciones automáticamente (`Autodetect`). Revisa que coincidan
 > con esta tabla y elimina cualquier relación adicional.
@@ -69,6 +71,7 @@ erDiagram
 | `dim_fecha` | `nombre_mes` | `Column tools > Sort by column` → `mes` |
 | `dim_fecha` | `nombre_dia` | `Sort by column` → `dia_semana` |
 | `fact_proceso` | `nivel_riesgo` | `Sort by column` → `nivel_riesgo_orden` |
+| `pred_monto_esperado` | `tipo_desviacion` | `Sort by column` → `tipo_desviacion_orden` |
 | `dim_entidad` | `departamento` | `Column tools > Data category` → `State or Province` |
 | `dim_entidad` | `pais` | `Data category` → `Country` |
 | Todas | columnas `*_key` | `Properties > Is hidden` = Sí (se usan solo para relaciones) |
@@ -87,3 +90,4 @@ El diccionario completo está en `docs/06_modelo_de_datos.md`. Columnas más usa
 | `dim_metodo` | `metodo_detalle` (procedimiento), `es_competitivo` |
 | `dim_indicador` | `codigo`, `nombre`, `peso` |
 | `agg_entidad_anio` | `pct_postor_unico`, `hhi`, `n_proveedores` |
+| `pred_monto_esperado` | `monto_esperado_pen`, `monto_minimo_esperado_pen`, `monto_maximo_esperado_pen`, `pct_desviacion`, `z_robusto`, `tipo_desviacion`, `es_atipico`, `origen_prediccion`, `modelo_aceptado` (ver `docs/11_machine_learning.md`) |

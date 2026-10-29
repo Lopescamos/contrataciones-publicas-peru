@@ -1,0 +1,39 @@
+# =============================================================================
+# Contratos de datos de las fuentes de archivo.
+# Define dónde buscar cada archivo y cómo mapear sus columnas a nombres
+# canónicos. Si una fuente cambia sus encabezados, se ajustan los alias aquí,
+# sin tocar el código.
+# Los alias se comparan normalizados: MAYÚSCULAS, sin tildes, espacios -> "_".
+# Ej.: "Número de Resolución" -> NUMERO_DE_RESOLUCION
+# =============================================================================
+
+ocds:
+  sample_file: data/sample/ocds_sample.jsonl
+  bulk_dir: data/raw/ocds
+  file_patterns: ["*.jsonl", "*.jsonl.gz", "*.json", "*.json.gz"]
+
+sanciones:
+  sample_file: data/sample/sanciones_sample.xlsx
+  search_dir: data/raw/excel
+  file_patterns: ["*sancion*.xlsx", "*sancion*.xls", "*sancion*.csv",
+                  "*inhabilit*.xlsx", "*inhabilit*.xls", "*inhabilit*.csv"]
+  sheet: 0
+  header_row: auto          # auto = detecta la fila de encabezados
+  required: [ruc, fecha_inicio]
+  columns:
+    ruc: [RUC, RUC_PROVEEDOR, NUMERO_RUC, NRO_RUC, N_RUC, NO_RUC, RUC_DNI, RUC_O_DNI]
+    nombre: [NOMBRE, RAZON_SOCIAL, NOMBRE_O_RAZON_SOCIAL, NOMBRE_RAZON_SOCIAL,
+             PROVEEDOR, DENOMINACION, NOMBRE_PROVEEDOR]
+    tipo_sancion: [TIPO_SANCION, TIPO_DE_SANCION, SANCION, TIPO]
+    fecha_inicio: [FECHA_INICIO, FECHA_DE_INICIO, FEC_INICIO, FECHA_INICIO_SANCION,
+                   FECHA_INICIO_INHABILITACION, INICIO, DESDE]
+    fecha_fin: [FECHA_FIN, FECHA_DE_FIN, FEC_FIN, FECHA_FIN_SANCION,
+                FECHA_FIN_INHABILITACION, FECHA_TERMINO, FIN, HASTA]
+    resolucion: [RESOLUCION, NUMERO_RESOLUCION, NUMERO_DE_RESOLUCION, NRO_RESOLUCION,
+                 N_RESOLUCION, NO_RESOLUCION]
+    motivo: [MOTIVO, INFRACCION, CAUSAL, DESCRIPCION_INFRACCION, MOTIVO_INFRACCION]
+
+tipo_cambio:
+  sample_file: data/sample/tipo_cambio_sample.csv
+  cache_file: data/external/tipo_cambio_bcrp.csv
+  file: data/external/tipo_cambio.csv   # usado cuando exchange_rate_source = file

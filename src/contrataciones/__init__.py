@@ -13,6 +13,8 @@ Capas del paquete:
     export      Salidas: Parquet/CSV, reporte Excel y carga a base de datos.
     pipeline    Orquestación de punta a punta.
     cli         Interfaz de línea de comandos (comando ``contrataciones``).
+    features    [ML] Dataset de modelado, features y guardia contra la fuga de datos.
+    models      [ML] Modelo de monto esperado y montos atípicos (``contrataciones-ml``).
 """
 
 __version__ = "1.0.0"

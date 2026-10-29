@@ -14,9 +14,14 @@ Análisis exploratorio y explicativo sobre las salidas del pipeline. La lógica 
 
 ## `ml/`: machine learning (Fase 2)
 
-Modelo de monto esperado: auditoría de fuga de datos, análisis del objetivo, comparación de
-modelos y evaluación de los montos atípicos. Se agregan a medida que avanza la Fase 2
-(configuración en `config/model_config.yaml`).
+Modelo de monto esperado (ver `docs/11_machine_learning.md`).
+
+| Notebook | Objetivo | Entradas |
+| --- | --- | --- |
+| `01_auditoria_fuga_de_datos.ipynb` | Fase 0: qué se conoce al convocar (postores, valor referencial, plazos) | Capa gold, `data/raw/api` y, opcional, la API |
+| `02_eda_objetivo.ipynb` | La razón adjudicado/referencial, la población y la división temporal | Capa gold, `config/model_config.yaml` |
+| `03_modelos_y_baselines.ipynb` | Línea base, candidatos, aceptación, segmentos e importancia | `contrataciones-ml train` |
+| `04_evaluacion_y_atipicos.ipynb` | Montos atípicos, casos a revisar y cruce con las alertas | `contrataciones-ml predict` |
 
 ## Cómo usarlos
 

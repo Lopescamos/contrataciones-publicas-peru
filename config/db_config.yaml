@@ -1,0 +1,49 @@
+# =============================================================================
+# Conexiones a bases de datos (SQLAlchemy).
+# El perfil activo se elige con la variable DB_PROFILE o con --db-profile.
+# Las credenciales se leen SIEMPRE desde el archivo .env, nunca se escriben aquí.
+# =============================================================================
+
+active_profile: ${DB_PROFILE:-local_sqlite}
+
+profiles:
+  # Base local sin instalación: un archivo .db (ideal para empezar y para tests)
+  local_sqlite:
+    dialect: sqlite
+    database: data/db/contrataciones.db
+
+  # PostgreSQL local con Docker (ver docker-compose.yml)
+  local_postgres:
+    dialect: postgresql+psycopg2
+    host: ${PG_HOST:-localhost}
+    port: ${PG_PORT:-5432}
+    database: ${PG_DATABASE:-contrataciones}
+    username: ${PG_USER:-analytics}
+    password: ${PG_PASSWORD:-}
+    schema: ${PG_SCHEMA:-public}
+    use_copy: true          # carga masiva con COPY (mucho más rápida)
+
+  # PostgreSQL administrado en la nube (Supabase, Neon, Cloud SQL, RDS, Azure)
+  cloud_postgres:
+    dialect: postgresql+psycopg2
+    host: ${CLOUD_PG_HOST:-}
+    port: ${CLOUD_PG_PORT:-5432}
+    database: ${CLOUD_PG_DATABASE:-postgres}
+    username: ${CLOUD_PG_USER:-}
+    password: ${CLOUD_PG_PASSWORD:-}
+    schema: ${CLOUD_PG_SCHEMA:-public}
+    use_copy: true
+    query:
+      sslmode: ${CLOUD_PG_SSLMODE:-require}
+
+  # Cualquier motor compatible con SQLAlchemy mediante una URL completa
+  custom_url:
+    url: ${DATABASE_URL:-}
+
+# Opciones comunes del motor
+engine:
+  pool_pre_ping: true
+  echo: false
+load:
+  mode: full_refresh   # full_refresh (borra y recarga) | append
+  chunksize: 10000

@@ -14,7 +14,8 @@ powerbi/
 │   └── medidas_dax.md              # Todas las medidas DAX listas para copiar
 ├── power_query/
 │   ├── 01_parametro_y_funcion.pq   # Parámetro RutaCurated + función fnCargarTabla
-│   └── 02_consultas_tablas.pq      # Una consulta por tabla (y alternativa PostgreSQL)
+│   ├── 02_consultas_tablas.pq      # Una consulta por tabla (y alternativa PostgreSQL)
+│   └── 03_predicciones_ml.pq       # Parámetro RutaPredictions + tabla pred_monto_esperado (ML)
 └── theme/
     └── tema_contrataciones.json    # Tema visual sobrio del reporte
 ```
@@ -27,6 +28,12 @@ powerbi/
    contrataciones run --source bulk --year 2025   # datos reales (después de descargarlos)
    ```
 2. Power BI Desktop actualizado (Microsoft Store o descarga oficial).
+3. Solo para la página de montos atípicos (Fase 2, opcional): entrenar el modelo y predecir
+   después de cada corrida del pipeline:
+   ```
+   contrataciones-ml train
+   contrataciones-ml predict
+   ```
 
 ## Opción de conexión: ¿Parquet o PostgreSQL?
 
@@ -87,10 +94,23 @@ En `Model view`:
 2. Construye las páginas según `docs/especificacion_dashboard.md`.
 3. Guarda como `powerbi/dashboards/contrataciones_peru.pbix`.
 
-### 6. Actualizar los datos
+### 6. Montos atípicos (Fase 2, opcional)
+
+1. Crea el parámetro `RutaPredictions` y la consulta `pred_monto_esperado` con
+   `power_query/03_predicciones_ml.pq`.
+2. Relación 14 de `docs/modelo_de_datos.md`: `pred_monto_esperado[proceso_key]` →
+   `fact_proceso[proceso_key]`, cardinalidad `Many to one (*:1)` y dirección `Single`.
+3. Ordena `tipo_desviacion` por `tipo_desviacion_orden` y copia las medidas de la carpeta
+   `08 Monto esperado (ML)` de `measures/medidas_dax.md`.
+4. Construye la página 7 de `docs/especificacion_dashboard.md`.
+
+### 7. Actualizar los datos
 
 Cada vez que vuelvas a ejecutar el pipeline, en Power BI: `Home > Refresh`. Si moviste la
 carpeta del proyecto, cambia el valor de `RutaCurated` (`Transform data > Edit parameters`).
+Si usas la página de montos atípicos, ejecuta `contrataciones-ml predict` después de cada
+`contrataciones run`: `proceso_key` cambia en cada corrida y la relación con `fact_proceso`
+solo es válida si ambas tablas salen de la misma.
 
 ---
 

@@ -1,0 +1,64 @@
+# =============================================================================
+# Reglas de los indicadores de riesgo ("red flags").
+# Un indicador NO prueba una irregularidad: señala procesos que conviene revisar.
+# Metodología y referencias en docs/08_indicadores_de_riesgo.md.
+# =============================================================================
+
+# Valores de tender.procurementMethod considerados competitivos (OCDS).
+competitive_methods_ocds: [open, selective]
+# Palabras (normalizadas) que marcan un procedimiento como NO competitivo,
+# buscadas en tender.procurementMethodDetails.
+non_competitive_keywords: [DIRECTA]
+# Estados de proceso excluidos de todos los indicadores.
+excluded_tender_status: [cancelled, withdrawn]
+# Estados de adjudicación que no cuentan como adjudicación efectiva.
+invalid_award_status: [cancelled, unsuccessful]
+
+indicators:
+  RF01:
+    enabled: true
+    weight: 25
+  RF02:
+    enabled: true
+    weight: 15
+    # Plazo a evaluar:
+    #   presentacion -> tender.tenderPeriod (convocatoria -> cierre de ofertas)
+    #   consultas    -> tender.enquiryPeriod (formulación de consultas y observaciones)
+    # En la publicación del OECE tenderPeriod suele traer inicio = fin (solo la fecha
+    # de convocatoria): revisa la regla "plazo de presentación no informado" del
+    # reporte de calidad y, si aplica, usa "consultas" con umbrales por procedimiento.
+    period: presentacion
+    threshold_days: 15          # umbral por defecto (Cardinal R003)
+    # Umbral por procedimiento (clave = tender.procurementMethodDetails).
+    # Ajústalo a los plazos mínimos del Reglamento vigente, p. ej.:
+    #   threshold_by_method: {"Licitación Pública": <días>, "Adjudicación Simplificada": <días>}
+    threshold_by_method: {}
+  RF03:
+    enabled: true
+    weight: 15
+    min_ratio: 0.98             # adjudicado / referencial >= 98 %
+  RF04:
+    enabled: true
+    weight: 10
+    tolerance: 0.0              # tolerancia sobre el 100 % del valor referencial
+  RF05:
+    enabled: true
+    weight: 10
+  RF06:
+    enabled: true
+    weight: 30
+    # Solo se consideran sanciones cuyo tipo contenga alguna de estas palabras
+    # (normalizadas). Lista vacía = cualquier sanción con periodo de vigencia.
+    sanction_type_keywords: [INHABILIT]
+  RF07:
+    enabled: true
+    weight: 15
+    min_share: 0.5              # el proveedor concentra >= 50 % del monto anual
+    min_processes: 5            # la entidad tiene >= 5 procesos adjudicados ese año
+
+# Puntaje = suma de pesos de las alertas activas, con tope en 100.
+scoring:
+  max_score: 100
+  levels:                       # límite inferior de cada nivel
+    Medio: 25
+    Alto: 50

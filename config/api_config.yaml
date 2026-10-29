@@ -1,0 +1,49 @@
+# =============================================================================
+# APIs externas.
+# =============================================================================
+
+# API OCDS del Portal de Contrataciones Abiertas del OECE (ex OSCE).
+# Documentación: sección "API" del portal https://contratacionesabiertas.oece.gob.pe
+#   records?sourceId=seace_v3&dataSegmentationID=AAAA-MM&page=N
+#     -> paquete de records (compiledRelease por proceso), 20 por página,
+#        segmentado por mes de convocatoria; la siguiente página está en links.next.
+#   files?year=AAAA&source=seace_v3 -> meses con paquete de descarga masiva.
+# Otros endpoints: releases, recordsAfter / releasesAfter (más de 10 000
+# resultados), record/{ocid}. Valida tu primera corrida con:
+#     contrataciones check-api
+oece_ocds:
+  base_url: ${OECE_API_BASE_URL:-https://contratacionesabiertas.oece.gob.pe/api/v1}
+  endpoint: ${OECE_API_ENDPOINT:-records}
+  params:
+    sourceId: ${OECE_API_SOURCE_ID:-seace_v3}   # seace_v3 (actual) | seace_v2 (histórico)
+  segment_param: dataSegmentationID   # parámetro del mes AAAA-MM (vacío = sin segmentar)
+  months_back: 2                # sin --year/--month/fechas: mes actual y anterior
+  max_pages: 50                 # máximo por mes (20 procesos por página)
+  files_endpoint: files
+  timeout_seconds: 60
+  min_interval_seconds: 0.5     # pausa entre solicitudes (cortesía con el servidor)
+  retries:
+    total: 5
+    backoff_factor: 1.0
+    status_forcelist: [429, 500, 502, 503, 504]
+  headers:
+    User-Agent: ${HTTP_USER_AGENT:-Mozilla/5.0 (Windows NT 10.0; Win64; x64) contrataciones-publicas-peru/1.0}
+    Accept: application/json, text/plain, */*
+    Accept-Language: es-PE,es;q=0.9,en;q=0.8
+    Referer: https://contratacionesabiertas.oece.gob.pe/
+
+# Descargas masivas del Registro de Datos de Open Contracting Partnership (OCP).
+# Publicación 135 = Perú: OECE. Un archivo .jsonl.gz por año, donde cada línea
+# es un "release compilado" (un proceso de contratación completo).
+ocp_registry:
+  publication_id: 135
+  download_url_template: https://data.open-contracting.org/es/publication/135/download?name={name}
+  timeout_seconds: 900
+
+# API de series estadísticas del Banco Central de Reserva del Perú (BCRPData).
+# Formato: {base_url}/{serie}/json/{inicio}/{fin}/{idioma}
+bcrp:
+  base_url: ${BCRP_API_BASE_URL:-https://estadisticas.bcrp.gob.pe/estadisticas/series/api}
+  usd_series: PD04638PD          # TC Interbancario (S/ por US$) - Venta, diario
+  language: esp
+  timeout_seconds: 60

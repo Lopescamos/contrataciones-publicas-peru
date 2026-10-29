@@ -1,0 +1,4 @@
+# Dependencias de machine learning (las mismas que declara el extra "ml" de pyproject.toml).
+# Instalación recomendada:  pip install -e ".[dev,ml]"
+-r requirements.txt
+scikit-learn>=1.9,<2

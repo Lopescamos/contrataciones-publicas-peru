@@ -1,0 +1,59 @@
+# --- Secretos ------------------------------------------------------------------
+.env
+*.pem
+*service-account*.json
+
+# --- Python --------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Notebooks -----------------------------------------------------------------
+.ipynb_checkpoints/
+
+# --- Datos (se regeneran con el pipeline; no se versionan) --------------------
+data/raw/**
+data/processed/**
+data/curated/**
+data/exports/**
+data/external/**
+data/db/**
+data/features/**
+data/predictions/**
+!data/**/
+!data/**/.gitkeep
+# data/sample/ SÍ se versiona: son datos sintéticos de demostración.
+
+# --- Modelos de machine learning (se regeneran al entrenar) -----------------
+models/trained/*
+models/metadata/*
+models/logs/*
+!models/**/.gitkeep
+
+# --- Logs ----------------------------------------------------------------------
+logs/*
+!logs/.gitkeep
+
+# --- Power BI ------------------------------------------------------------------
+# Los .pbix se pueden versionar; los archivos temporales no.
+~$*.pbix
+*.pbix.bak
+
+# --- Sistema / editores ----------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+CLAUDE.md

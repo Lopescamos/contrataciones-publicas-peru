@@ -8,8 +8,8 @@ YEAR ?= 2025
 help:  ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
 
-install:  ## Instala el proyecto y las dependencias de desarrollo
-	$(PYTHON) -m pip install -e ".[dev]"
+install:  ## Instala el proyecto con las dependencias de desarrollo y de ML
+	$(PYTHON) -m pip install -e ".[dev,ml]"
 
 lint:  ## Revisa estilo y errores con ruff
 	ruff check src tests scripts
@@ -48,5 +48,7 @@ db-down:  ## Detiene PostgreSQL local
 
 clean:  ## Borra datos generados (no toca data/sample ni data/raw)
 	rm -rf data/processed/* data/curated/* data/exports/* data/db/*.db logs/*.log*
+	rm -rf data/features/* data/predictions/*
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	touch data/processed/.gitkeep data/curated/.gitkeep data/exports/.gitkeep data/db/.gitkeep
+	touch data/features/.gitkeep data/predictions/.gitkeep

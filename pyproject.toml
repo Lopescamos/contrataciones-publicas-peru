@@ -40,6 +40,10 @@ dev = [
     "nbformat>=5.9",
     "nbconvert>=7",
 ]
+# Fase 2 (machine learning): pip install -e ".[dev,ml]"
+ml = [
+    "scikit-learn>=1.5,<2",
+]
 
 [project.scripts]
 contrataciones = "contrataciones.cli:main"

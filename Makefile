@@ -3,7 +3,7 @@
 PYTHON ?= python
 YEAR ?= 2025
 
-.PHONY: help install lint format test coverage sample run run-bulk download setup-db db-up db-down clean
+.PHONY: help install lint format test coverage sample run run-bulk download setup-db train predict db-up db-down clean
 
 help:  ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -39,6 +39,12 @@ run-bulk:  ## Pipeline con datos reales descargados (YEAR=2025)
 
 setup-db:  ## Crea tablas y vistas en la base configurada
 	contrataciones setup-db
+
+train:  ## Entrena el modelo de monto esperado (Fase 2, requiere 'make run')
+	contrataciones-ml train
+
+predict:  ## Calcula montos esperados y montos atípicos con el último modelo
+	contrataciones-ml predict
 
 db-up:  ## Levanta PostgreSQL local con Docker
 	docker compose up -d

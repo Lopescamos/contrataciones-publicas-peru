@@ -47,6 +47,7 @@ ml = [
 
 [project.scripts]
 contrataciones = "contrataciones.cli:main"
+contrataciones-ml = "contrataciones.models.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -181,3 +181,9 @@ schtasks /Create /SC WEEKLY /D MON /ST 07:00 /TN "ContratacionesRefresh" `
 ```cron
 0 7 * * 1 cd ~/proyectos/contrataciones-publicas-peru && .venv/bin/python scripts/refresh_data.py >> logs/cron.log 2>&1
 ```
+
+## Después del pipeline: modelo de monto esperado
+
+El modelo de machine learning (Fase 2) lee la capa gold que deja el pipeline. Después de cada
+corrida: `contrataciones-ml predict` (y `contrataciones-ml train` cuando quieras reentrenar).
+Ver [Machine learning](11_machine_learning.md).

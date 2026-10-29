@@ -42,6 +42,21 @@ sql/
     └── 08_alertas_por_indicador.sql
 ```
 
+Objetos de la Fase 2 (machine learning), que crea `contrataciones-ml predict` y no el pipeline:
+
+```
+sql/
+├── ddl_ml/
+│   └── 001_pred_monto_esperado.sql   Tabla de predicciones, sin llaves foráneas hacia la capa gold
+├── views_ml/
+│   └── vw_montos_atipicos.sql         Atípicos con el contexto del proceso y sus alertas por reglas
+└── queries_ml/
+    └── 01_atipicos_por_entidad.sql    (:minimo)
+```
+
+Van en carpetas propias porque el pipeline ejecuta todos los scripts de `sql/ddl` y las pruebas
+de punta a punta ejecutan todas las consultas de `sql/queries` contra la capa gold.
+
 ### Crear o recrear el esquema
 
 ```bash

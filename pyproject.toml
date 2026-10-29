@@ -42,7 +42,7 @@ dev = [
 ]
 # Fase 2 (machine learning): pip install -e ".[dev,ml]"
 ml = [
-    "scikit-learn>=1.5,<2",
+    "scikit-learn>=1.9,<2",
 ]
 
 [project.scripts]

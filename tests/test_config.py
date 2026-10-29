@@ -8,9 +8,12 @@ from contrataciones.utils.config_loader import (
     ConfigError,
     get_project_root,
     interpolate_env,
+    load_config,
     load_yaml,
     resolve_path,
 )
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_interpolate_uses_default_when_variable_missing(monkeypatch):
@@ -52,3 +55,11 @@ def test_project_root_from_environment(monkeypatch, tmp_path):
     # unidad actual, no absoluta, por lo que se construye desde el ancla real.
     absoluta = Path(tmp_path.anchor) / "abs" / "ruta.csv"
     assert resolve_path(absoluta) == absoluta
+
+
+def test_ml_paths_and_model_config_sections():
+    settings = load_config("settings", root=REPO_ROOT)
+    assert {"features", "predictions", "models"} <= settings["paths"].keys()
+    model_config = load_config("model_config", root=REPO_ROOT)
+    expected = ["population", "features", "entity_types", "split", "models", "anomalies", "output"]
+    assert set(expected) <= model_config.keys()

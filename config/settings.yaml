@@ -25,6 +25,10 @@ paths:
   sample: data/sample              # Datos sintéticos de demostración
   sql: sql
   logs: logs
+  # Fase 2 (machine learning)
+  features: data/features          # Dataset de modelado (una fila por proceso)
+  predictions: data/predictions    # Monto esperado y montos atípicos por proceso
+  models: models                   # Modelos entrenados, metadatos y experimentos
 
 pipeline:
   default_source: sample   # sample | bulk | api

@@ -1,0 +1,56 @@
+# =============================================================================
+# Parámetros globales del proyecto.
+# Las rutas son relativas a la raíz del proyecto. Los valores ${VAR:-defecto}
+# se completan con variables de entorno (archivo .env).
+# =============================================================================
+
+project:
+  name: contrataciones-publicas-peru
+  version: 1.0.0
+  description: Analítica de contrataciones públicas del Perú (OCDS - OECE/SEACE)
+  timezone: America/Lima
+
+# Arquitectura medallion: raw (bronze) -> processed (silver) -> curated (gold)
+paths:
+  raw: data/raw                    # Bronze: datos tal como llegan de la fuente
+  raw_ocds: data/raw/ocds          # Archivos OCDS descargados (.jsonl.gz)
+  raw_api: data/raw/api            # Páginas JSON crudas de la API del OECE
+  raw_excel: data/raw/excel        # Excel/CSV de terceros (sanciones, etc.)
+  processed: data/processed        # Silver: datos limpios y tipados (Parquet)
+  staging: data/processed/_staging # Aplanado intermedio del JSON OCDS
+  curated: data/curated            # Gold: modelo dimensional para Power BI
+  exports: data/exports            # Reportes Excel y CSV para usuarios
+  powerbi_exports: data/exports/powerbi
+  external: data/external          # Datos de referencia (tipo de cambio)
+  sample: data/sample              # Datos sintéticos de demostración
+  sql: sql
+  logs: logs
+
+pipeline:
+  default_source: sample   # sample | bulk | api
+  chunk_size: 20000        # filas por bloque al aplanar el JSON (controla memoria)
+  limit: null              # máximo de procesos a leer (null = todos)
+  date_from: null          # filtro AAAA-MM-DD sobre la fecha de convocatoria
+  date_to: null
+  cutoff_date: null        # fecha de corte para "sanción vigente" (null = hoy)
+  load_database: true
+  export_excel: true
+  export_formats: [parquet, csv]
+
+currency:
+  base: PEN
+  # Fuente del tipo de cambio para montos en moneda extranjera:
+  #   bcrp  -> API del BCRP (serie diaria, con caché en data/external)
+  #   file  -> archivo CSV indicado en sources.yaml (tipo_cambio.file)
+  #   none  -> no convierte (los montos *_pen quedan vacíos)
+  exchange_rate_source: bcrp
+  max_rate_gap_days: 10    # días hacia atrás para buscar el último tipo de cambio
+
+quality:
+  fail_on_error: false     # true = detiene el pipeline si falla una regla ERROR
+
+logging:
+  level: ${LOG_LEVEL:-INFO}
+  file: logs/pipeline.log
+  max_bytes: 5000000
+  backup_count: 3

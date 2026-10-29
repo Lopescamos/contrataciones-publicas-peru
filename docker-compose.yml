@@ -1,0 +1,41 @@
+# =============================================================================
+# PostgreSQL local para el proyecto (opcional).
+#   Iniciar:            docker compose up -d
+#   Con Adminer (UI):   docker compose --profile tools up -d   -> http://localhost:8080
+#   Detener:            docker compose down          (los datos se conservan)
+#   Borrar datos:       docker compose down -v
+# Las credenciales se leen del archivo .env (PG_DATABASE, PG_USER, PG_PASSWORD, PG_PORT).
+# =============================================================================
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: contrataciones-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DATABASE:-contrataciones}
+      POSTGRES_USER: ${PG_USER:-analytics}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-cambia_esta_clave}
+      TZ: America/Lima
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:latest
+    container_name: contrataciones-adminer
+    restart: unless-stopped
+    profiles: ["tools"]
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

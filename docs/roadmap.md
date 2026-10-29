@@ -25,7 +25,23 @@
 
 ## Fase 2 · Machine learning
 
-La capa gold ya es la entrada natural de los modelos. Se agregará, sin modificar lo existente:
+### 2.0 · Modelo de monto esperado (en curso)
+
+Detalle en [Machine learning](11_machine_learning.md).
+
+- [x] Infraestructura: extra `ml`, `config/model_config.yaml`, carpetas y notebooks `ml/`
+- [x] Features ex ante con guardia contra la fuga de datos y canario en las pruebas
+- [x] División temporal con corte por disponibilidad y madurez; predicción fuera de muestra
+- [x] Línea base B1, Ridge e HistGradientBoosting; métricas por segmento e importancia
+- [x] Montos atípicos con escala robusta; tabla, vista y consulta SQL; reporte Excel
+- [x] Comando `contrataciones-ml`, scripts, CI y página de Power BI especificada
+- [ ] Fase 0: auditoría de fuga de datos con datos reales (`notebooks/ml/01_...`)
+- [ ] Entrenamiento con datos reales y reporte de métricas
+- [ ] Decidir la integración como RF08 (requiere validar el modelo con datos reales)
+
+### Estructura
+
+La capa gold es la entrada de los modelos, sin modificar el pipeline:
 
 ```
 data/
@@ -49,7 +65,7 @@ Casos de uso candidatos:
 | Detección de procesos atípicos sin etiquetas | Detección de anomalías (Isolation Forest) | Puntaje de anomalía |
 | Predecir si un proveedor será sancionado | Clasificación | Aparición en el registro de sanciones |
 | Segmentación de proveedores | Clustering | Perfiles de proveedor |
-| Estimar el monto adjudicado esperado | Regresión | `monto_adjudicado_pen` |
+| Estimar el monto adjudicado esperado (**en curso**, 2.0) | Regresión | `log(monto adjudicado / valor referencial)` |
 
 Principios: validación temporal (entrenar con el pasado, evaluar con el futuro), métricas
 reportadas por segmento y la misma advertencia de uso responsable que los indicadores.

@@ -24,9 +24,9 @@ py -3.12 -m venv .venv
 # Si aparece "running scripts is disabled", ejecuta una vez:
 #   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
-# 3. Instala el proyecto con las herramientas de desarrollo
+# 3. Instala el proyecto con las herramientas de desarrollo y de machine learning
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,ml]"
 
 # 4. Crea tu archivo de variables de entorno
 Copy-Item .env.example .env
@@ -43,14 +43,16 @@ cd ~/proyectos/contrataciones-publicas-peru
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,ml]"
 cp .env.example .env
 pytest
 contrataciones run --source sample
 ```
 
 > `pip install -e .` instala el paquete en modo **editable**: los cambios que hagas en `src/`
-> se reflejan sin reinstalar, y queda disponible el comando `contrataciones`. Si prefieres no
+> se reflejan sin reinstalar, y quedan disponibles los comandos `contrataciones` y
+> `contrataciones-ml`. El extra `ml` agrega scikit-learn (Fase 2); sin él, todo el pipeline de
+> analítica funciona igual. Si prefieres no
 > instalarlo, los scripts de `scripts/` también funcionan (`python scripts/run_pipeline.py`).
 
 ### ¿Qué deberías ver?
@@ -88,6 +90,7 @@ Toda la configuración vive en `config/*.yaml`; los **secretos** (contraseñas, 
 | `config/sources.yaml` | Ubicación de archivos y alias de columnas del Excel de sanciones |
 | `config/risk_rules.yaml` | Umbrales y pesos de los indicadores de riesgo |
 | `config/export_config.yaml` | Formato de CSV, compresión Parquet y estilo del Excel |
+| `config/model_config.yaml` | Modelo de monto esperado: población, features, división temporal, modelos y umbrales de atípicos (ver [Machine learning](11_machine_learning.md)) |
 
 ## Base de datos: tres opciones
 
@@ -195,6 +198,7 @@ Power BI se conecta a BigQuery con `Get data > Google BigQuery`.
 | Síntoma | Causa probable | Solución |
 | --- | --- | --- |
 | `contrataciones` no se reconoce como comando | Entorno virtual no activado o paquete no instalado | Activa `.venv` y ejecuta `pip install -e ".[dev]"` |
+| `ModuleNotFoundError: sklearn` al usar `contrataciones-ml` | Falta el extra de machine learning | `pip install -e ".[dev,ml]"` |
 | `running scripts is disabled on this system` | Política de ejecución de PowerShell | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
 | `No hay archivos OCDS en data/raw/ocds` | No se descargaron datos reales | `contrataciones download --year 2025` |
 | `HTTP 403` al usar `--source api` | El servidor rechaza clientes automatizados | Usa la descarga masiva (`download` + `--source bulk`) |

@@ -214,6 +214,13 @@ Incluye postores, adjudicados y proveedores que solo aparecen en el registro de 
 
 ---
 
+## Tablas de machine learning (Fase 2)
+
+No forman parte de la capa gold ni del DDL del pipeline. `contrataciones-ml predict` genera
+`pred_monto_esperado` (una fila por proceso de la población, con su monto esperado y su tipo de
+desviación) en `data/predictions` y en la base de datos (`sql/ddl_ml`), sin llaves foráneas
+hacia la capa gold. Diccionario completo en [Machine learning](11_machine_learning.md#7-salidas).
+
 ## Capa silver (`data/processed`)
 
 Tablas limpias, una por entidad del estándar OCDS, con nombres de negocio. Sirven para análisis

@@ -40,6 +40,9 @@
 * Cobertura: `pytest --cov=contrataciones --cov-report=term-missing`.
 * La prueba de punta a punta (`tests/test_pipeline.py`) ejecuta el pipeline sobre los datos
   sintéticos en una carpeta temporal y valida todas las consultas SQL.
+* Modelo de monto esperado (Fase 2): `tests/test_features/` y `tests/test_models/` incluyen la
+  guardia contra la fuga de datos, el canario (con ruido puro ningún modelo supera a la mediana)
+  y la prueba de punta a punta de `contrataciones-ml`. Toda feature nueva necesita su prueba.
 * `tests/test_processing/test_oece_format.py` fija el comportamiento ante las particularidades de
   la publicación real del OECE (fixture `make_oece_release` en `tests/conftest.py`). Si aparece un
   caso nuevo en los datos reales, agrégalo ahí primero.
@@ -88,6 +91,12 @@ Un cambio en el modelo gold que rompa el dashboard o las consultas es un cambio 
 ### Agregar un indicador de riesgo
 
 Ver [Indicadores de riesgo](08_indicadores_de_riesgo.md#agregar-un-indicador-nuevo).
+
+### Agregar una feature al modelo de monto esperado
+
+Declárala en `config/model_config.yaml` con su origen en la capa gold y
+`available_at: convocatoria`; la guardia rechaza cualquier columna del resultado. Pasos y
+criterios en [Machine learning](11_machine_learning.md#12-extender).
 
 ### Agregar una consulta SQL de negocio
 

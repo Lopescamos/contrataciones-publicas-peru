@@ -84,6 +84,13 @@ cli  ──>  pipeline  ──>  ingestion · processing · export  ──>  uti
 * `export` no sabe cómo se calcularon los datos: recibe DataFrames y los escribe.
 * Cambiar de SQLite a PostgreSQL, o de archivo a API, no obliga a tocar la lógica de negocio.
 
+La Fase 2 (machine learning) es una capa aparte que **lee la capa gold** y no modifica el
+pipeline:
+
+```
+models.cli  ──>  models.workflow  ──>  features · models  ──>  export · utils
+```
+
 ### Módulos y responsabilidades
 
 | Capa | Módulo | Responsabilidad |
@@ -103,6 +110,17 @@ cli  ──>  pipeline  ──>  ingestion · processing · export  ──>  uti
 | export | `csv_exporter.py` | Parquet y CSV |
 | export | `excel_exporter.py` | Reporte ejecutivo en Excel |
 | export | `db_writer.py` | DDL, carga (full refresh / append / upsert) y vistas |
+| features | `catalog.py` | Definición de las features y guardia contra la fuga de datos |
+| features | `dataset.py` | Dataset de modelado: una fila por proceso, objetivo y población |
+| features | `builder.py` | Transformaciones sin estado (logaritmo, mes, tipo de entidad) |
+| features | `audit.py` | Auditoría de disponibilidad de los datos (Fase 0) |
+| models | `trainer.py` | División temporal, línea base, candidatos, predicción fuera de muestra |
+| models | `evaluator.py` | Métricas, mejora frente a la línea base, segmentos, importancia |
+| models | `anomaly.py` | Escala robusta y clasificación de las desviaciones |
+| models | `registry.py` | Guardado, carga, catálogo y bitácora de modelos |
+| models | `predictor.py` | Puntaje de los procesos y exportación (archivos y base de datos) |
+| models | `report.py` | Reporte Excel de montos atípicos |
+| models | `workflow.py`, `cli.py` | Orquestación y comando `contrataciones-ml` |
 
 ## Estructura completa del repositorio
 
@@ -114,16 +132,19 @@ contrataciones-publicas-peru/
 │   ├── api_config.yaml     APIs: OECE, Registro de Datos OCP, BCRP
 │   ├── sources.yaml        Contratos de datos: dónde están los archivos y alias de columnas
 │   ├── risk_rules.yaml     Umbrales y pesos de los indicadores de riesgo
-│   └── export_config.yaml  Formato de CSV, Parquet y Excel
-├── data/                   Datos por capa (ver data/README.md)
+│   ├── export_config.yaml  Formato de CSV, Parquet y Excel
+│   └── model_config.yaml   [ML] Población, features, división, modelos y atípicos
+├── data/                   Datos por capa (ver data/README.md), incluidos features/ y predictions/
 ├── docs/                   Esta documentación
-├── notebooks/              Análisis exploratorio y explicativo
+├── models/                 [ML] Modelos entrenados, catálogo y bitácora (generados)
+├── notebooks/              analytics/ (análisis) y ml/ (modelo de monto esperado)
 ├── powerbi/                Guía, medidas DAX, Power Query, tema y especificación del dashboard
 ├── scripts/                Atajos ejecutables (run_pipeline.py, setup_db.py, ...)
 ├── sql/
 │   ├── ddl/                Creación de tablas e índices (portable SQLite/PostgreSQL)
 │   ├── views/              Vistas para análisis
-│   └── queries/            Consultas de negocio parametrizadas
+│   ├── queries/            Consultas de negocio parametrizadas
+│   └── ddl_ml/, views_ml/, queries_ml/   [ML] Tabla de predicciones, vista y consulta
 ├── src/contrataciones/     Código fuente (paquete instalable)
 ├── tests/                  Pruebas automatizadas (pytest)
 ├── .github/workflows/      Integración continua
@@ -148,6 +169,10 @@ Registro breve de decisiones (formato *ADR*: contexto → decisión → consecue
 | D8 | Configuración en YAML + secretos en `.env` | Separar parámetros, credenciales y código | El mismo código corre en local, CI y nube |
 | D9 | Paquete instalable (`src/` layout) + CLI | Estándar de empaquetado de Python (PyPA) | Imports limpios, pruebas fiables y comando `contrataciones` |
 | D10 | Datos sintéticos versionados | Poder probar todo sin descargar 150 MB ni depender de internet | Pruebas y CI reproducibles |
+| D11 | Machine learning fuera del pipeline: lee la capa gold | No duplicar lógica ni acoplar el pipeline a un modelo que se reentrena | `contrataciones-ml` corre después de `contrataciones run`; el pipeline no cambia |
+| D12 | Guardia anti-fuga en el código, no en el YAML | La fuga de datos es el error más común y más caro de un modelo | Las features se declaran en YAML, pero las columnas del resultado se rechazan siempre |
+| D13 | División temporal y predicción fuera de muestra | Simular "predecir procesos nuevos con lo aprendido de los pasados" y no puntuar con un modelo que vio el dato | Métricas honestas y atípicos comparables en todo el histórico |
+| D14 | Montos atípicos como reporte aparte, no como RF08 | El puntaje de riesgo es determinista y RF03/RF04 ya cubren parte del sobrecosto | Se integrará como RF08 solo tras validarlo con datos reales |
 
 ## Dónde encaja machine learning (fase 2)
 

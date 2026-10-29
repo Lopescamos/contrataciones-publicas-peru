@@ -15,6 +15,7 @@ de principio a fin.
 | 8 | [Indicadores de riesgo](08_indicadores_de_riesgo.md) | ¿Cómo se calculan las alertas y cómo se interpretan? |
 | 9 | [Base de datos](09_base_de_datos.md) | ¿Cómo uso SQLite, PostgreSQL local o en la nube, y las consultas SQL? |
 | 10 | [Convenciones y contribución](10_convenciones_y_contribucion.md) | ¿Cómo extiendo el proyecto sin romperlo? |
+| 11 | [Machine learning](11_machine_learning.md) | ¿Cómo se estima el monto esperado y se evita la fuga de datos? |
 | — | [Glosario](glosario.md) | Términos de contrataciones públicas y de datos |
 | — | [Hoja de ruta](roadmap.md) | Próximas fases (incluida la de machine learning) |
 

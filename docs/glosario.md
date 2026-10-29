@@ -63,3 +63,18 @@
 | **Llave natural / sustituta** | Identificador de negocio (RUC) frente a un entero generado para relacionar tablas |
 | **Parquet** | Formato de archivo columnar, comprimido y tipado |
 | **Upsert** | Insertar o actualizar según exista la llave |
+
+## Machine learning (Fase 2)
+
+| Término | Definición |
+| --- | --- |
+| **Canario de fuga** | Prueba con un objetivo de ruido puro: si un modelo lo "predice", alguna variable contiene el resultado |
+| **Escala robusta (MAD)** | 1.4826 x la mediana de las desviaciones absolutas respecto de la mediana; resiste valores extremos |
+| **Fuga de datos** (*data leakage*) | Usar como variable información que solo se conoce después del hecho que se predice |
+| **Línea base** | Modelo simple de referencia (aquí, la mediana de la razón por método y categoría) que un modelo debe superar |
+| **Monto esperado** | Estimación de cuánto debería adjudicarse un proceso según su perfil al convocarse |
+| **Predicción fuera de muestra** | Predicción de un dato con un modelo que no lo usó para entrenar |
+| **Sobrecosto / subcosto inusual** | Monto adjudicado muy por encima o por debajo del esperado (z robusto y desviación mínima) |
+| **TargetEncoder** | Codifica una categoría con muchos valores (la entidad) por el promedio del objetivo, aprendido solo del entrenamiento |
+| **Validación temporal** | Entrenar con el pasado y evaluar con el futuro, como ocurre en la práctica |
+| **z robusto** | Distancia al centro del segmento medida en escalas robustas |
